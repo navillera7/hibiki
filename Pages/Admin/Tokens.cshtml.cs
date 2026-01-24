@@ -33,7 +33,7 @@ public class AdminTokensModel : PageModel
         if (campaign != null)
         {
             CampaignTitle = campaign.Title; 
-            Tokens = campaign.Tokens;
+                Tokens = campaign.Tokens;
             return Page(); // 권한이 있고 캠페인을 찾았다면 페이지를 보여줍니다.
         }
 
