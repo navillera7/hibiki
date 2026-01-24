@@ -1,0 +1,50 @@
+@page
+@model MySurveyApp.Pages.Admin.AdminIndexModel
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🛠️ 캠페인 관리자 센터</h2>
+        <a asp-page="Create" class="btn btn-primary">새 캠페인(설문/선거) 생성</a>
+        
+    </div>
+    <table class="table table-hover border">
+        <thead class="table-light">
+            <tr>
+                <th>캠페인 명</th>
+                <th>유형</th>
+                <th>참여 현황</th>
+                <th>관리</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.CampaignList) {
+                <tr>
+                    <td><strong>@c.Title</strong></td>
+                    <td>
+                        <span class="badge bg-secondary">질문 @c.Questions.Count 개</span>
+                    </td>
+                    <td>@c.Tokens.Count(t => t.IsUsed) / @c.Tokens.Count 명 완료</td>
+<td>
+    <div class="btn-group">
+        <a asp-page="Results" asp-route-id="@c.Id" class="btn btn-sm btn-info">결과</a>
+        <a asp-page="Tokens" asp-route-id="@c.Id" class="btn btn-sm btn-dark">토큰</a>
+        
+        @* 중지/재개 버튼 *@
+        <form method="post" asp-page-handler="ToggleActive" asp-route-id="@c.Id" style="display:inline;">
+            <button type="submit" class="btn btn-sm @(c.IsActive ? "btn-warning" : "btn-success")">
+                @(c.IsActive ? "중지" : "재개")
+            </button>
+        </form>
+
+        @* 삭제 버튼 (실수 방지용 confirm 추가) *@
+        <form method="post" asp-page-handler="Delete" asp-route-id="@c.Id" style="display:inline;" 
+              onsubmit="return confirm('정말 삭제하시겠습니까? 모든 결과가 사라집니다.');">
+            <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+        </form>
+    </div>
+</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

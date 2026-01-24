@@ -1,0 +1,29 @@
+﻿
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "투표 시작";
+}
+
+
+
+<div class="text-center mt-5">
+    <h1 class="display-4">🗳️ 익명 투표 시스템</h1>
+    <p class="lead">관리자에게 받은 접속 코드를 입력해주세요.</p>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-4">
+            <form method="post">
+                <div class="input-group mb-3">
+                    <input type="text" name="voterToken" class="form-control form-control-lg text-center" 
+                           placeholder="Ex: ABCDE12345" required maxlength="10">
+                    <button class="btn btn-primary" type="submit">접속하기</button>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger">@Model.ErrorMessage</div>
+                }
+            </form>
+        </div>
+    </div>
+</div>

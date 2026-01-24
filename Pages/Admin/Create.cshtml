@@ -1,0 +1,95 @@
+@page
+@model MySurveyApp.Pages.Admin.AdminCreateModel
+<div class="container mt-5">
+    <h2>🚀 통합 캠페인 생성 마법사</h2>
+    <form method="post">
+        <div class="card p-4 mb-4 shadow-sm bg-light">
+            <div class="row">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">캠페인 전체 제목</label>
+                    <input asp-for="CampaignTitle" class="form-control form-control-lg" placeholder="예: 2026 하반기 정기 총회" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">발행할 코드 개수</label>
+                    <input asp-for="TokenCount" class="form-control form-control-lg" type="number" min="1" value="20" />
+                </div>
+            </div>
+        </div>
+
+        <div id="questionsContainer">
+            </div>
+
+        <div class="d-flex gap-2 mb-5">
+            <button type="button" class="btn btn-outline-primary w-100" onclick="addQuestion()">+ 새 안건/선거 추가</button>
+        </div>
+
+        <div class="sticky-bottom bg-white p-3 border-top shadow-lg">
+            <button type="submit" class="btn btn-success btn-lg w-100">모든 안건 확정 및 캠페인 생성</button>
+        </div>
+    </form>
+</div>
+
+<template id="questionTemplate">
+    <div class="card p-4 mb-4 border-primary question-block shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-primary mb-0">안건 #<span class="q-index">1</span></h5>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeQuestion(this)">삭제</button>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">안건 제목</label>
+            <input name="Questions[INDEX].Text" class="form-control" placeholder="예: 제 7대 회장 선거" required />
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">유형</label>
+                <select name="Questions[INDEX].Type" class="form-select">
+                    <option value="Survey">단순 설문</option>
+                    <option value="Election">선거 (누적 투표)</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">1인당 부여할 표 수</label>
+                <input name="Questions[INDEX].MaxPoints" type="number" class="form-control" value="1" min="1" />
+            </div>
+        </div>
+        <div class="mb-0">
+            <label class="form-label fw-bold">선택지 / 후보자 (이름:공약 형식, 줄바꿈 구분)</label>
+            <textarea name="Questions[INDEX].OptionsRaw" class="form-control" rows="4" 
+                      placeholder="후보자명:공약내용&#10;찬성&#10;반대"></textarea>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <script>
+        let questionCount = 0;
+
+        function addQuestion() {
+            const container = document.getElementById('questionsContainer');
+            const template = document.getElementById('questionTemplate').innerHTML;
+            
+            // INDEX를 현재 카운트로 치환하여 추가
+            const newBlock = template.replace(/INDEX/g, questionCount).replace(/q-index/g, 'display-index');
+            container.insertAdjacentHTML('beforeend', newBlock);
+            
+            updateIndices();
+            questionCount++;
+        }
+
+        function removeQuestion(btn) {
+            btn.closest('.question-block').remove();
+            updateIndices();
+        }
+
+        function updateIndices() {
+            document.querySelectorAll('.question-block').forEach((block, idx) => {
+                const display = block.querySelector('.display-index');
+                if(display) display.innerText = idx + 1;
+            });
+        }
+
+        // 페이지 로드 시 첫 번째 질문 블록 자동 추가
+        window.onload = addQuestion;
+    </script>
+}

@@ -1,0 +1,97 @@
+@page
+@model VoteModel
+<div class="container mt-5">
+    <h2 class="text-center mb-4">@Model.CampaignTitle</h2>
+
+    <form method="post" id="voteForm">
+        <input type="hidden" asp-for="Token" />
+
+        @foreach (var q in Model.Questions)
+        {
+            <div class="card mb-4 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">@q.Text</h5>
+                    <span class="badge bg-light text-dark">
+                        남은 표 수: <span id="remaining-@q.Id">@q.MaxPoints</span> / @q.MaxPoints
+                    </span>
+                </div>
+                <div class="card-body">
+                    <input type="hidden" class="max-points" data-qid="@q.Id" value="@q.MaxPoints" />
+                    
+                    @foreach (var opt in q.Options)
+                    {
+                        <div class="row align-items-center mb-3 p-2 border-bottom">
+                            <div class="col-8">
+                                <strong>@opt.Name</strong>
+                                @if (!string.IsNullOrEmpty(opt.Description))
+                                {
+                                    <div class="text-muted small">📜 @opt.Description</div>
+                                }
+                            </div>
+                            <div class="col-4 d-flex align-items-center justify-content-end">
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="changeVote(@q.Id, '@opt.Name', -1)">-</button>
+                                <input type="number" name="VoteData[@q.Id][@opt.Name]" 
+                                       class="form-control text-center vote-count-@q.Id" 
+                                       style="width: 60px;" value="0" readonly />
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="changeVote(@q.Id, '@opt.Name', 1)">+</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        <div id="validationMsg" class="alert alert-warning text-center">모든 질문에 정해진 표수를 모두 사용해야 제출할 수 있습니다.</div>
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100" disabled>투표 제출하기</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function changeVote(qId, optName, delta) {
+            const inputs = document.querySelectorAll(`.vote-count-${qId}`);
+            const input = document.querySelector(`input[name="VoteData[${qId}][${optName}]"]`);
+            const maxPoints = parseInt(document.querySelector(`.max-points[data-qid="${qId}"]`).value);
+            
+            let currentTotal = 0;
+            inputs.forEach(i => currentTotal += parseInt(i.value));
+
+            const newValue = parseInt(input.value) + delta;
+
+            // 0표 미만 방지 및 최대 표수 초과 방지
+            if (newValue >= 0 && (currentTotal + delta) <= maxPoints) {
+                input.value = newValue;
+                updateStatus(qId, maxPoints);
+            }
+        }
+
+        function updateStatus(qId, maxPoints) {
+            const inputs = document.querySelectorAll(`.vote-count-${qId}`);
+            let currentTotal = 0;
+            inputs.forEach(i => currentTotal += parseInt(i.value));
+
+            document.getElementById(`remaining-${qId}`).innerText = maxPoints - currentTotal;
+            validateForm();
+        }
+
+        function validateForm() {
+            const questions = document.querySelectorAll('.max-points');
+            let allValid = true;
+
+            questions.forEach(q => {
+                const qId = q.getAttribute('data-qid');
+                const max = parseInt(q.value);
+                const inputs = document.querySelectorAll(`.vote-count-${qId}`);
+                let total = 0;
+                inputs.forEach(i => total += parseInt(i.value));
+
+                if (total !== max) allValid = false;
+            });
+
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('validationMsg');
+            btn.disabled = !allValid;
+            if(allValid) msg.classList.add('d-none');
+            else msg.classList.remove('d-none');
+        }
+    </script>
+}

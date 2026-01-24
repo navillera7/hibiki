@@ -1,0 +1,83 @@
+@page "{id:int}"
+@model MySurveyApp.Pages.Admin.AdminTokensModel
+@{
+    ViewData["Title"] = "토큰 관리";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🔑 토큰 목록: @Model.CampaignTitle</h2>
+        <div>
+            <button class="btn btn-outline-primary" onclick="copyAllTokens()">전체 토큰 복사</button>
+            <a asp-page="Index" class="btn btn-secondary">돌아가기</a>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        참여 인원에게 아래 코드를 하나씩 전달하세요. 코드는 한 번 사용하면 무효화됩니다.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>접속 코드 (토큰)</th>
+                        <th>상태</th>
+                        <th>동작</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Tokens.Count; i++)
+                    {
+                        var token = Model.Tokens[i];
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td><code class="fs-5" id="token-@i">@token.Code</code></td>
+                            <td>
+                                @if (token.IsUsed)
+                                {
+                                    <span class="badge bg-danger">사용됨</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">사용 가능</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('@token.Code')">복사</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* 복사를 위한 숨겨진 텍스트 영역 *@
+<textarea id="tempTextArea" style="position: absolute; left: -9999px;"></textarea>
+
+<script>
+    function copyToClipboard(text) {
+        const textArea = document.getElementById("tempTextArea");
+        textArea.value = text;
+        textArea.select();
+        document.execCommand("copy");
+        alert("코드가 복사되었습니다: " + text);
+    }
+
+    function copyAllTokens() {
+        const codes = [];
+        @foreach (var t in Model.Tokens)
+        {
+            @:codes.push("@t.Code");
+        }
+        const textArea = document.getElementById("tempTextArea");
+        textArea.value = codes.join("\n");
+        textArea.select();
+        document.execCommand("copy");
+        alert("전체 " + codes.length + "개의 토큰이 클립보드에 복사되었습니다.");
+    }
+</script>
