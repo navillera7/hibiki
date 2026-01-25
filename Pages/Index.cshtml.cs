@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-namespace MySurveyApp.Pages;
 using MySurveyApp.Data;
 using MySurveyApp.Services;
+
+namespace MySurveyApp.Pages;
 
 public class IndexModel : PageModel
 {
@@ -14,34 +15,23 @@ public class IndexModel : PageModel
         _db = db;
     }
 
-    // 화면에서 에러 메시지를 표시하기 위한 프로퍼티 (에러 해결 핵심!)
     public string? ErrorMessage { get; set; }
-
     public List<CampaignProgress> OngoingPolls { get; set; } = new();
+
+    // ✅ 해결: OnGet()을 삭제하고 OnGetAsync 하나만 유지합니다.
     public async Task OnGetAsync()
     {
-        // 1. 활성화된 캠페인 목록을 토큰 정보와 함께 가져옵니다.
-OngoingPolls = await _db.Campaigns
-    .Where(c => c.IsActive)
-    .Select(c => new CampaignProgress
-    {
-        Title = c.Title,
-        // .Count()가 0일 경우를 대비해 조건을 겁니다.
-        Percentage = c.Tokens.Any() 
-            ? (int)((double)c.Tokens.Count(t => t.IsUsed) / c.Tokens.Count() * 100) 
-            : 0
-    })
-    .ToListAsync();
-    }
-    public class CampaignProgress
-    {
-        public string Title { get; set; } = "";
-        public int Percentage { get; set; }
-    }
-
-    public void OnGet()
-    {
-        // 처음 페이지 로드 시에는 에러 메시지 없음
+        OngoingPolls = await _db.Campaigns
+            .Where(c => c.IsActive)
+            .Select(c => new CampaignProgress
+            {
+                Title = c.Title,
+                // 분모가 0이 되는 것을 방지하여 런타임 에러를 차단합니다.
+                Percentage = c.Tokens.Any() 
+                    ? (int)((double)c.Tokens.Count(t => t.IsUsed) / c.Tokens.Count * 100) 
+                    : 0
+            })
+            .ToListAsync();
     }
 
     public async Task<IActionResult> OnPostAsync(string voterToken)
@@ -52,7 +42,6 @@ OngoingPolls = await _db.Campaigns
             return Page();
         }
 
-        // DB에서 해당 코드가 유효한지(존재하며 사용 전인지) 확인
         var token = await _db.VoterTokens
             .FirstOrDefaultAsync(t => t.Code == voterToken);
 
@@ -68,7 +57,12 @@ OngoingPolls = await _db.Campaigns
             return Page();
         }
 
-        // 코드가 유효하면 투표 페이지로 이동 (토큰 값을 들고 감)
         return RedirectToPage("Vote", new { token = voterToken });
+    }
+
+    public class CampaignProgress
+    {
+        public string Title { get; set; } = "";
+        public int Percentage { get; set; }
     }
 }
