@@ -1,29 +1,81 @@
-﻿
-@page
+﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "투표 시작";
+    ViewData["Title"] = "투표 시스템";
 }
 
+<div class="container mt-5">
+    <div class="row align-items-start">
+        
+        <div class="col-md-8 border-end pe-md-5">
+            <div class="text-center py-5">
+                [cite_start]<h1 class="display-4 fw-bold">🗳️ 익명 투표 시스템</h1> 
+                [cite_start]<p class="lead text-muted">관리자에게 받은 접속 코드를 입력해주세요.</p> [cite: 7]
 
-
-<div class="text-center mt-5">
-    <h1 class="display-4">🗳️ 익명 투표 시스템</h1>
-    <p class="lead">관리자에게 받은 접속 코드를 입력해주세요.</p>
-
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-4">
-            <form method="post">
-                <div class="input-group mb-3">
-                    <input type="text" name="voterToken" class="form-control form-control-lg text-center" 
-                           placeholder="Ex: ABCDE12345" required maxlength="10">
-                    <button class="btn btn-primary" type="submit">접속하기</button>
+                <div class="row justify-content-center mt-5">
+                    <div class="col-lg-10">
+                        <form method="post">
+                            <div class="input-group input-group-lg mb-3 shadow-sm">
+                                <input type="text" name="voterToken" 
+                                       class="form-control text-center fw-bold" 
+                                       [cite_start]placeholder="Ex: ABCDE12345" required maxlength="10"> [cite: 8]
+                                <button class="btn btn-primary px-4" type="submit">접속하기</button>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                            {
+                                <div class="alert alert-danger d-flex align-items-center mt-3">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    [cite_start]<div>@Model.ErrorMessage</div> [cite: 9]
+                                </div>
+                            }
+                        </form>
+                    </div>
                 </div>
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                {
-                    <div class="alert alert-danger">@Model.ErrorMessage</div>
-                }
-            </form>
+
+                <div class="mt-5 p-4 bg-light rounded-3 text-start small text-secondary">
+                    <ul class="mb-0">
+                        <li>본 시스템은 1인 1표(또는 정해진 표수)의 익명성을 철저히 보장합니다.</li>
+                        <li>한 번 사용 완료된 코드는 보안을 위해 즉시 무효화됩니다.</li>
+                    </ul>
+                </div>
+            </div>
         </div>
+
+        <div class="col-md-4 ps-md-5 mt-5 mt-md-0">
+            <div class="sticky-top" style="top: 2rem;">
+                <h4 class="fw-bold mb-4 d-flex align-items-center">
+                    <span class="badge bg-danger me-2">LIVE</span> 진행 중인 투표
+                </h4>
+
+                @if (Model.OngoingPolls != null && Model.OngoingPolls.Any())
+                {
+                    @foreach (var poll in Model.OngoingPolls)
+                    {
+                        <div class="card mb-3 border-0 shadow-sm overflow-hidden">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-bold text-truncate">@poll.Title</h6>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted">실시간 투표율</span>
+                                    <span class="badge bg-success-soft text-success">@poll.Percentage%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" 
+                                         style="width: @poll.Percentage%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="card border-dashed py-5 text-center text-muted">
+                        <p class="mb-0">현재 진행 중인<br>공개 투표가 없습니다.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
     </div>
 </div>
