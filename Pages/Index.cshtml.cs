@@ -21,17 +21,17 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         // 1. 활성화된 캠페인 목록을 토큰 정보와 함께 가져옵니다.
-        OngoingPolls = await _db.Campaigns
-            .Where(c => c.IsActive)
-            .Select(c => new CampaignProgress
-            {
-                Title = c.Title,
-                // 투표율 계산: (사용된 토큰 수 / 전체 토큰 수) * 100
-                Percentage = c.Tokens.Count > 0 
-                    ? (int)((double)c.Tokens.Count(t => t.IsUsed) / c.Tokens.Count * 100) 
-                    : 0
-            })
-            .ToListAsync();
+OngoingPolls = await _db.Campaigns
+    .Where(c => c.IsActive)
+    .Select(c => new CampaignProgress
+    {
+        Title = c.Title,
+        // .Count()가 0일 경우를 대비해 조건을 겁니다.
+        Percentage = c.Tokens.Any() 
+            ? (int)((double)c.Tokens.Count(t => t.IsUsed) / c.Tokens.Count() * 100) 
+            : 0
+    })
+    .ToListAsync();
     }
     public class CampaignProgress
     {
