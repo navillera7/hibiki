@@ -18,15 +18,19 @@ public class CampaignService
     /// <summary>
     /// 1. 새 설문/선거 캠페인을 생성하고 고유 토큰들을 발행합니다.
     /// </summary>
-    public async Task<Campaign> CreateCampaignAsync(string title, int participantCount, List<Question> questions)
+    public async Task<Campaign> CreateCampaignAsync(string title, string? description, int tokenCount, List<Question> questions)
     {
-        var campaign = new Campaign
+        var campaign = new Campaign 
         {
             Title = title,
+            Description = description, 
+            TokenCount = tokenCount,
+            IsActive = true,           
             Questions = questions
         };
 
-        for (int i = 0; i < participantCount; i++)
+        // participantCount 대신 tokenCount 변수를 사용합니다.
+        for (int i = 0; i < tokenCount; i++)
         {
             campaign.Tokens.Add(new VoterToken
             {
@@ -38,7 +42,7 @@ public class CampaignService
         _db.Campaigns.Add(campaign);
         await _db.SaveChangesAsync();
         
-        _logger.LogInformation($"새 캠페인 '{title}' 생성 완료 (ID: {campaign.Id}, 토큰: {participantCount}개)");
+        _logger.LogInformation($"새 캠페인 '{title}' 생성 완료 (ID: {campaign.Id}, 토큰: {tokenCount}개)");
         return campaign;
     }
 
@@ -172,7 +176,7 @@ public async Task DeleteCampaignAsync(int id) {
     // 보안 코드 생성 (숫자 0, 1과 알파벳 O, I 등 헷갈리는 문자 제외)
     private string GenerateSecureCode(int length)
     {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; //수정 예정 
         return new string(Enumerable.Repeat(chars, length)
             .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
     }

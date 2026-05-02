@@ -13,11 +13,16 @@
                     <label class="form-label fw-bold">발행할 코드 개수</label>
                     <input asp-for="TokenCount" class="form-control form-control-lg" type="number" min="1" value="20" />
                 </div>
+                <!-- 추가된 캠페인 전체 설명 영역 -->
+                <div class="col-md-12 mt-3">
+                    <label class="form-label fw-bold">전체 설문 설명</label>
+                    <textarea asp-for="CampaignDescription" class="form-control" rows="3" placeholder="2026년 민주정우회 선거"></textarea>
+                </div>
             </div>
         </div>
 
         <div id="questionsContainer">
-            </div>
+        </div>
 
         <div class="d-flex gap-2 mb-5">
             <button type="button" class="btn btn-outline-primary w-100" onclick="addQuestion()">+ 새 안건/선거 추가</button>
@@ -39,6 +44,11 @@
         <div class="mb-3">
             <label class="form-label fw-bold">안건 제목</label>
             <input name="Questions[INDEX].Text" class="form-control" placeholder="예: 제 7대 회장 선거" required />
+        </div>
+        <!-- 추가된 개별 안건 설명 영역 -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">안건 설명 (선택)</label>
+            <textarea name="Questions[INDEX].Description" class="form-control" rows="2" placeholder="해당 안건이나 선거 후보에 대한 추가 설명을 입력하세요."></textarea>
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">

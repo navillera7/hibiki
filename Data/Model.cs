@@ -3,24 +3,36 @@ using System.ComponentModel.DataAnnotations;
 namespace MySurveyApp.Data; // <--- App이 붙은 이름 확인
 
 // 1. 전체 설문/선거 캠페인
+// 1. 전체 설문/선거 캠페인
 public class Campaign {
     public int Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public bool IsActive { get; set; } = true;
+    public string Title { get; set; } = "";
+    
+    public string? Description { get; set; } 
+    public int TokenCount { get; set; }
+    
+    // --- 이 두 줄이 반드시 있어야 합니다! ---
+    public bool IsActive { get; set; } = true; 
+    public List<VoterToken> Tokens { get; set; } = new(); 
+    
     public List<Question> Questions { get; set; } = new();
-    public List<VoterToken> Tokens { get; set; } = new();
 }
 
 // 2. 개별 질문 또는 후보자
 public class Question {
     public int Id { get; set; }
-    public int CampaignId { get; set; }
-    public string Text { get; set; } = string.Empty;
-    public string Type { get; set; } = "Survey"; // Survey 또는 Election
-    public int MaxPoints { get; set; } = 1; // 1인당 투표 가능 수
+    public string Text { get; set; } = "";
+    
+    // 이 부분을 추가해 주세요!
+    public string? Description { get; set; } 
+    
+    public string Type { get; set; } = "Survey";
+    public int MaxPoints { get; set; } = 1;
+    
     public List<QuestionOption> Options { get; set; } = new();
+    public int CampaignId { get; set; }
+    public Campaign Campaign { get; set; } = null!;
 }
-
 public class QuestionOption {
     public int Id { get; set; }
     public int QuestionId { get; set; }

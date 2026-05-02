@@ -20,6 +20,7 @@ public class VoteModel : PageModel
     // 뒤에 = default!; 를 붙여 경고를 제거합니다.
     [BindProperty] public string Token { get; set; } = default!;
     public string CampaignTitle { get; set; } = default!;
+    public string? CampaignDescription { get; set; }
     public List<Question> Questions { get; set; } = default!;
 
 public async Task<IActionResult> OnGetAsync(string token)
@@ -36,6 +37,7 @@ public async Task<IActionResult> OnGetAsync(string token)
 
     Token = token;
     CampaignTitle = validToken.Campaign.Title;
+    CampaignDescription = validToken.Campaign.Description;
     Questions = validToken.Campaign.Questions;
 
     return Page();

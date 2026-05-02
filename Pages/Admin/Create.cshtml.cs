@@ -11,10 +11,10 @@ public class AdminCreateModel : PageModel {
     public AdminCreateModel(CampaignService service) => _service = service;
 
     [BindProperty] public string CampaignTitle { get; set; } = "";
+    [BindProperty] public string CampaignDescription { get; set; } = ""; // 추가: 전체 설문(캠페인) 설명
     [BindProperty] public int TokenCount { get; set; } = 20;
     [BindProperty] public List<QuestionInput> Questions { get; set; } = new();
 
-    // 1. 페이지 접속 시 관리자 권한 확인을 위해 OnGetAsync를 추가합니다.
     public IActionResult OnGet() {
         if (HttpContext.Session.GetString("IsAdmin") != "true") {
             return RedirectToPage("Login");
@@ -23,7 +23,6 @@ public class AdminCreateModel : PageModel {
     }
 
     public async Task<IActionResult> OnPostAsync() {
-        // 2. 폼 제출 시에도 권한을 확인합니다.
         if (HttpContext.Session.GetString("IsAdmin") != "true") {
             return RedirectToPage("Login");
         }
@@ -35,6 +34,7 @@ public class AdminCreateModel : PageModel {
 
         var mappedQuestions = Questions.Select(q => new Question {
             Text = q.Text,
+            Description = q.Description, // 추가: 개별 안건 설명 매핑
             Type = q.Type,
             MaxPoints = q.MaxPoints,
             Options = q.OptionsRaw?.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
@@ -47,12 +47,14 @@ public class AdminCreateModel : PageModel {
                 }).ToList() ?? new List<QuestionOption>()
         }).ToList();
 
-        await _service.CreateCampaignAsync(CampaignTitle, TokenCount, mappedQuestions);
+        // 참고: CampaignService의 CreateCampaignAsync 시그니처에 CampaignDescription이 추가되도록 서비스 코드를 수정해야 합니다.
+        await _service.CreateCampaignAsync(CampaignTitle, CampaignDescription, TokenCount, mappedQuestions);
         return RedirectToPage("Index");
     }
 
     public class QuestionInput {
         public string Text { get; set; } = "";
+        public string Description { get; set; } = ""; // 추가: 개별 안건 설명
         public string Type { get; set; } = "Survey";
         public int MaxPoints { get; set; } = 1;
         public string OptionsRaw { get; set; } = "";
