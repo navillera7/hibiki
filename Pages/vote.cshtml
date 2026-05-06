@@ -1,20 +1,13 @@
 @page
 @model VoteModel
 <div class="container mt-5">
-    <!-- 캠페인 전체 제목 및 설명 -->
+    <!-- 캠페인 전체 제목 (설명은 팝업으로 이동하므로 여기서는 제거하거나 제목만 남깁니다) -->
     <div class="text-center mb-4">
         <h2>@Model.CampaignTitle</h2>
-        
-        <!-- 모델에 CampaignDescription을 직접 넘기지 않았으므로, 
-             첫 번째 질문의 속한 캠페인 정보를 통해 가져오거나 모델에 추가해야 합니다. 
-             하지만 가장 간단하게 모델에 CampaignDescription 프로퍼티를 추가하는 것이 좋습니다. -->
-        @if (!string.IsNullOrEmpty(Model.CampaignDescription))
-        {
-            <p class="text-muted mt-2">@Model.CampaignDescription</p>
-        }
     </div>
 
-    <form method="post" id="voteForm">
+    <!-- [중요] 투표 폼 영역: 초기 상태는 d-none (숨김) 클래스로 설정 -->
+    <form method="post" id="voteForm" class="d-none">
         <input type="hidden" asp-for="Token" />
 
         @foreach (var q in Model.Questions)
@@ -64,8 +57,82 @@
     </form>
 </div>
 
+<!-- 투표 안내 팝업 모달 HTML 추가 -->
+<!-- data-bs-backdrop="static" (외부 클릭 방지), data-bs-keyboard="false" (ESC 방지) -->
+<div class="modal fade" id="descModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-primary">🚀 투표 전 안내사항</h5>
+            </div>
+            <div class="modal-body p-4">
+                <h3 class="text-center mb-4">@Model.CampaignTitle</h3>
+                
+                <div class="p-3 bg-light border rounded" style="min-height: 150px; max-height: 400px; overflow-y: auto;">
+                    @if (!string.IsNullOrEmpty(Model.CampaignDescription))
+                    {
+                        <!-- 줄바꿈 유지를 위해 style="white-space: pre-wrap;" 추가 -->
+                        <div class="text-secondary" style="white-space: pre-wrap; font-size: 1.1rem;">@Model.CampaignDescription</div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted pt-5">등록된 안내 사항이 없습니다.</div>
+                    }
+                </div>
+                
+                <div class="form-check mt-4 d-flex justify-content-center">
+                    <input class="form-check-input me-2" type="checkbox" id="readConfirmCheck" style="transform: scale(1.3);">
+                    <label class="form-check-label fw-bold" for="readConfirmCheck">
+                        위 투표 안내 사항을 모두 읽고 이해했습니다.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <!-- 초기 상태는 disabled. 체크박스를 해야 활성화됨 -->
+                <button type="button" class="btn btn-success btn-lg px-5" id="closeDescBtn" disabled onclick="confirmDescription()">확인 및 투표 시작</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <!-- Bootstrap 5 JS (모달 작동에 필수. Layout.cshtml에 없다면 여기에 추가) -->
+    @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> *@
+
     <script>
+        // --- 팝업 모달 관련 로직 ---
+
+        // 페이지 로드 완료 시 실행
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. 모달 인스턴스 생성 및 표시
+            var myModal = new bootstrap.Modal(document.getElementById('descModal'));
+            myModal.show();
+
+            // 2. 체크박스 상태 변경에 따라 확인 버튼 활성화/비활성화
+            const confirmCheck = document.getElementById('readConfirmCheck');
+            const closeBtn = document.getElementById('closeDescBtn');
+            
+            confirmCheck.addEventListener('change', function() {
+                closeBtn.disabled = !this.checked;
+            });
+        });
+
+        // 확인 버튼 클릭 시 실행
+        function confirmDescription() {
+            // 1. 모달 닫기
+            var modalEl = document.getElementById('descModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            // 2. 숨겨져 있던 투표 폼 표시
+            document.getElementById('voteForm').classList.remove('d-none');
+            
+            // 3. 시각적 효과를 위해 폼으로 스크롤 이동
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+
+        // --- 기존 투표 로직 (유지) ---
         function changeVote(qId, optName, delta) {
             const inputs = document.querySelectorAll(`.vote-count-${qId}`);
             const input = document.querySelector(`input[name="VoteData[${qId}][${optName}]"]`);
@@ -76,7 +143,6 @@
 
             const newValue = parseInt(input.value) + delta;
 
-            // 0표 미만 방지 및 최대 표수 초과 방지
             if (newValue >= 0 && (currentTotal + delta) <= maxPoints) {
                 input.value = newValue;
                 updateStatus(qId, maxPoints);
