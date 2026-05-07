@@ -4,8 +4,15 @@ using MySurveyApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- 수정된 부분 시작 ---
+// 환경에 따라 DB 저장 경로를 다르게 설정합니다.
+var dbPath = builder.Environment.IsDevelopment() 
+    ? "Data Source=SurveyApp.db"             // 로컬(내 컴퓨터)에서는 기존처럼 현재 폴더에 저장
+    : "Data Source=/app/data/SurveyApp.db";  // Railway(운영)에서는 영구 보존 볼륨에 저장
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=SurveyApp.db")); // 파일 이름은 자유
+    options.UseSqlite(dbPath));
+// --- 수정된 부분 끝 ---
     builder.Services.AddScoped<CampaignService>();
 // Add services to the container.
 
